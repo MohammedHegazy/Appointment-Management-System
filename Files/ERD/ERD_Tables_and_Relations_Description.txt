@@ -1,0 +1,306 @@
+# Appointments Management System - ERD Tables and Relations Description
+
+## Overview
+This document describes the database schema for the Appointments Management System, including all tables, their fields, and relationships between them.
+
+## Enums
+
+### RoleType
+- admin
+- doctor
+- hospital_admin
+- patient
+
+### AppointmentType
+- online
+- onsite
+
+### PaymentMethod
+- cash
+- online
+
+### AccountStatus
+- pending
+- active
+- inactive
+
+### NotificationType
+- appointment_reminder
+- appointment_confirmed
+- appointment_cancelled
+- payment_receipt
+- payment_failed
+- account_activated
+- general
+
+### AppointmentStatus
+- scheduled
+- confirmed
+- in_progress
+- completed
+- cancelled
+- no_show
+
+### WaitlistStatus
+- waiting
+- offered
+- accepted
+- expired
+
+### PaymentStatus
+- pending
+- processing
+- completed
+- failed
+- refunded
+
+## Tables
+
+### 1. users
+Primary table for all system users (patients, doctors, admins, hospital admins).
+
+**Fields:**
+- id (int, PK, auto-increment)
+- email (varchar(255), not null, unique)
+- password (varchar(255), not null)
+- first_name (varchar(100), not null)
+- last_name (varchar(100), not null)
+- avatar (varchar(500))
+- hospital_id (int)
+- role (RoleType, not null)
+- status (AccountStatus, not null, default: pending)
+- created_at (datetime, not null, default: CURRENT_TIMESTAMP)
+- updated_at (datetime, not null, default: CURRENT_TIMESTAMP)
+
+### 2. hospitals
+Stores information about hospitals in the system.
+
+**Fields:**
+- id (int, PK, auto-increment)
+- name (varchar(255), not null)
+- address (varchar(500))
+- phone (varchar(50))
+- created_at (datetime, not null, default: CURRENT_TIMESTAMP)
+- updated_at (datetime, not null, default: CURRENT_TIMESTAMP)
+
+### 3. specializations
+Medical specializations that doctors can have.
+
+**Fields:**
+- id (int, PK, auto-increment)
+- name (varchar(255), not null, unique)
+- description (text)
+- created_at (datetime, not null, default: CURRENT_TIMESTAMP)
+- updated_at (datetime, not null, default: CURRENT_TIMESTAMP)
+
+### 4. doctors
+Doctor-specific information linked to users.
+
+**Fields:**
+- id (int, PK, auto-increment)
+- user_id (int, not null, unique)
+- specialization_id (int)
+- license_number (varchar(100))
+- certificate_file (varchar(500))
+- bio (text)
+- created_at (datetime, not null, default: CURRENT_TIMESTAMP)
+- updated_at (datetime, not null, default: CURRENT_TIMESTAMP)
+
+### 5. doctor_availability
+Doctor's availability schedule.
+
+**Fields:**
+- id (int, PK, auto-increment)
+- doctor_id (int, not null)
+- day_of_week (int, not null)
+- start_time (time, not null)
+- end_time (time, not null)
+- is_available (boolean, not null, default: true)
+- appointment_type (AppointmentType, not null)
+- created_at (datetime, not null, default: CURRENT_TIMESTAMP)
+- updated_at (datetime, not null, default: CURRENT_TIMESTAMP)
+
+### 6. medical_profiles
+Patient medical information.
+
+**Fields:**
+- id (int, PK, auto-increment)
+- user_id (int, not null, unique)
+- blood_type (varchar(10))
+- allergies (text)
+- chronic_conditions (text)
+- medications (text)
+- emergency_contact (varchar(255))
+- created_at (datetime, not null, default: CURRENT_TIMESTAMP)
+- updated_at (datetime, not null, default: CURRENT_TIMESTAMP)
+
+### 7. medical_records
+Medical records from appointments.
+
+**Fields:**
+- id (int, PK, auto-increment)
+- appointment_id (int, not null)
+- diagnosis (text)
+- treatment (text)
+- prescription (text)
+- notes (text)
+- created_at (datetime, not null, default: CURRENT_TIMESTAMP)
+- updated_at (datetime, not null, default: CURRENT_TIMESTAMP)
+
+### 8. appointments
+Appointment bookings between patients and doctors.
+
+**Fields:**
+- id (int, PK, auto-increment)
+- patient_id (int, not null)
+- doctor_id (int, not null)
+- appointment_type (AppointmentType, not null)
+- scheduled_at (datetime, not null)
+- duration_minutes (int)
+- status (AppointmentStatus, not null, default: scheduled)
+- notes (text)
+- created_at (datetime, not null, default: CURRENT_TIMESTAMP)
+- updated_at (datetime, not null, default: CURRENT_TIMESTAMP)
+
+### 9. appointment_payments
+Payment information for appointments.
+
+**Fields:**
+- id (int, PK, auto-increment)
+- appointment_id (int, not null, unique)
+- amount (decimal(10,2), not null)
+- method (PaymentMethod, not null)
+- stripe_payment_id (varchar(255))
+- paid_at (datetime)
+- status (PaymentStatus, not null, default: pending)
+- created_at (datetime, not null, default: CURRENT_TIMESTAMP)
+- updated_at (datetime, not null, default: CURRENT_TIMESTAMP)
+
+### 10. notifications
+System notifications for users.
+
+**Fields:**
+- id (int, PK, auto-increment)
+- user_id (int, not null)
+- type (NotificationType, not null)
+- title (varchar(255), not null)
+- message (text, not null)
+- is_read (boolean, not null, default: false)
+- related_id (int)
+- related_type (varchar(50))
+- created_at (datetime, not null, default: CURRENT_TIMESTAMP)
+
+### 11. appointment_status_history
+Tracks changes in appointment status.
+
+**Fields:**
+- id (int, PK, auto-increment)
+- appointment_id (int, not null)
+- old_status (AppointmentStatus)
+- new_status (AppointmentStatus, not null)
+- notes (text)
+- created_at (datetime, not null, default: CURRENT_TIMESTAMP)
+
+### 12. waitlist
+Waitlist for appointments when slots are full.
+
+**Fields:**
+- id (int, PK, auto-increment)
+- patient_id (int, not null)
+- doctor_id (int, not null)
+- preferred_date (date, not null)
+- preferred_time (time)
+- status (WaitlistStatus, not null, default: waiting)
+- notes (text)
+- created_at (datetime, not null, default: CURRENT_TIMESTAMP)
+- updated_at (datetime, not null, default: CURRENT_TIMESTAMP)
+
+### 13. file_attachments
+File attachments for various entities.
+
+**Fields:**
+- id (int, PK, auto-increment)
+- entity_type (varchar(50), not null)
+- entity_id (int, not null)
+- file_name (varchar(255), not null)
+- file_path (varchar(500), not null)
+- file_size (int)
+- mime_type (varchar(100))
+- uploaded_by (int, not null)
+- created_at (datetime, not null, default: CURRENT_TIMESTAMP)
+
+### 14. audit_logs
+Audit trail for system actions.
+
+**Fields:**
+- id (int, PK, auto-increment)
+- user_id (int)
+- action (varchar(100), not null)
+- entity_type (varchar(50), not null)
+- entity_id (int, not null)
+- old_values (json)
+- new_values (json)
+- ip_address (varchar(45))
+- user_agent (text)
+- created_at (datetime, not null, default: CURRENT_TIMESTAMP)
+
+## Relationships
+
+### Foreign Key Relationships:
+1. **doctors.user_id** → **users.id** (One-to-One)
+   - Each doctor has one user account
+
+2. **doctors.specialization_id** → **specializations.id** (Many-to-One)
+   - Multiple doctors can have the same specialization
+
+3. **users.hospital_id** → **hospitals.id** (Many-to-One)
+   - Multiple users can belong to the same hospital
+
+4. **doctor_availability.doctor_id** → **doctors.id** (Many-to-One)
+   - Each doctor can have multiple availability slots
+
+5. **medical_profiles.user_id** → **users.id** (One-to-One)
+   - Each patient has one medical profile
+
+6. **medical_records.appointment_id** → **appointments.id** (One-to-One)
+   - Each appointment can have one medical record
+
+7. **appointments.patient_id** → **users.id** (Many-to-One)
+   - One patient can have multiple appointments
+
+8. **appointments.doctor_id** → **doctors.id** (Many-to-One)
+   - One doctor can have multiple appointments
+
+9. **appointment_payments.appointment_id** → **appointments.id** (One-to-One)
+   - Each appointment has one payment record
+
+10. **notifications.user_id** → **users.id** (Many-to-One)
+    - One user can receive multiple notifications
+
+11. **appointment_status_history.appointment_id** → **appointments.id** (Many-to-One)
+    - One appointment can have multiple status changes
+
+12. **waitlist.patient_id** → **users.id** (Many-to-One)
+    - One patient can be on multiple waitlists
+
+13. **waitlist.doctor_id** → **doctors.id** (Many-to-One)
+    - One doctor can have multiple waitlist entries
+
+14. **file_attachments.uploaded_by** → **users.id** (Many-to-One)
+    - One user can upload multiple files
+
+15. **audit_logs.user_id** → **users.id** (Many-to-One)
+    - One user can have multiple audit log entries
+
+## Key Business Logic Relationships:
+
+- **Users** are the central entity, with different roles (admin, doctor, hospital_admin, patient)
+- **Doctors** are specialized users with additional profile information
+- **Patients** are users who can book appointments and have medical profiles
+- **Appointments** connect patients with doctors and include payment and status tracking
+- **Medical records** are created after appointments are completed
+- **Notifications** keep users informed about appointment and payment status changes
+- **Waitlists** allow patients to queue for unavailable appointment slots
+- **Audit logs** track all system changes for compliance and debugging
+
+This schema supports a comprehensive appointment management system with user management, scheduling, payments, medical records, and notifications.
