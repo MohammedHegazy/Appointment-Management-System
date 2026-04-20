@@ -1,0 +1,242 @@
+Enum RoleType {
+  admin
+  doctor
+  hospital_admin
+  patient
+}
+
+Enum AppointmentType {
+  online
+  onsite
+}
+
+Enum PaymentMethod {
+  cash
+  online
+}
+
+Enum AccountStatus {
+  pending
+  active
+  inactive
+}
+
+Enum NotificationType {
+  appointment_reminder
+  appointment_confirmed
+  appointment_cancelled
+  payment_receipt
+  payment_failed
+  account_activated
+  general
+}
+
+Enum AppointmentStatus {
+  scheduled
+  confirmed
+  in_progress
+  completed
+  cancelled
+  no_show
+}
+
+Enum WaitlistStatus {
+  waiting
+  offered
+  accepted
+  expired
+}
+
+Enum PaymentStatus {
+  pending
+  processing
+  completed
+  failed
+  refunded
+}
+
+
+
+Table users {
+  id int [pk, increment]
+  email varchar(255) [not null, unique]
+  password varchar(255) [not null]
+  first_name varchar(100) [not null]
+  last_name varchar(100) [not null]
+  avatar varchar(500)
+  hospital_id int
+  role RoleType [not null]
+  status AccountStatus [not null, default: `pending`]
+  created_at datetime [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at datetime [not null, default: `CURRENT_TIMESTAMP`]
+}
+
+
+Table hospitals {
+  id int [pk, increment]
+  name varchar(255) [not null]
+  address varchar(500)
+  phone varchar(50)
+  created_at datetime [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at datetime [not null, default: `CURRENT_TIMESTAMP`]
+}
+
+Table specializations {
+  id int [pk, increment]
+  name varchar(255) [not null, unique]
+  description text
+  created_at datetime [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at datetime [not null, default: `CURRENT_TIMESTAMP`]
+}
+
+Table doctors {
+  id int [pk, increment]
+  user_id int [not null, unique]
+  specialization_id int
+  license_number varchar(100)
+  certificate_file varchar(500)
+  bio text
+  created_at datetime [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at datetime [not null, default: `CURRENT_TIMESTAMP`]
+}
+
+
+
+Table doctor_availability {
+  id int [pk, increment]
+  doctor_id int [not null]
+  day_of_week int [not null]
+  start_time time [not null]
+  end_time time [not null]
+  is_available boolean [not null, default: true]
+  appointment_type AppointmentType [not null]
+  created_at datetime [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at datetime [not null, default: `CURRENT_TIMESTAMP`]
+}
+
+Table medical_profiles {
+  id int [pk, increment]
+  user_id int [not null, unique]
+  blood_type varchar(10)
+  allergies text
+  chronic_conditions text
+  medications text
+  emergency_contact varchar(255)
+  created_at datetime [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at datetime [not null, default: `CURRENT_TIMESTAMP`]
+}
+
+Table medical_records {
+  id int [pk, increment]
+  appointment_id int [not null]
+  diagnosis text
+  treatment text
+  prescription text
+  notes text
+  created_at datetime [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at datetime [not null, default: `CURRENT_TIMESTAMP`]
+}
+
+
+Table appointments {
+  id int [pk, increment]
+  patient_id int [not null]
+  doctor_id int [not null]
+  appointment_type AppointmentType [not null]
+  scheduled_at datetime [not null]
+  duration_minutes int
+  status AppointmentStatus [not null, default: `scheduled`]
+  notes text
+  created_at datetime [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at datetime [not null, default: `CURRENT_TIMESTAMP`]
+}
+
+
+Table appointment_payments {
+  id int [pk, increment]
+  appointment_id int [not null, unique]
+  amount decimal(10,2) [not null]
+  method PaymentMethod [not null]
+  stripe_payment_id varchar(255)
+  paid_at datetime
+  status PaymentStatus [not null, default: `pending`]
+  created_at datetime [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at datetime [not null, default: `CURRENT_TIMESTAMP`]
+}
+
+
+Table notifications {
+  id int [pk, increment]
+  user_id int [not null]
+  type NotificationType [not null]
+  title varchar(255) [not null]
+  message text [not null]
+  is_read boolean [not null, default: false]
+  related_id int
+  related_type varchar(50)
+  created_at datetime [not null, default: `CURRENT_TIMESTAMP`]
+}
+
+Table appointment_status_history {
+  id int [pk, increment]
+  appointment_id int [not null]
+  old_status AppointmentStatus
+  new_status AppointmentStatus [not null]
+  notes text
+  created_at datetime [not null, default: `CURRENT_TIMESTAMP`]
+}
+
+
+Table waitlist {
+  id int [pk, increment]
+  patient_id int [not null]
+  doctor_id int [not null]
+  preferred_date date [not null]
+  preferred_time time
+  status WaitlistStatus [not null, default: `waiting`]
+  notes text
+  created_at datetime [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at datetime [not null, default: `CURRENT_TIMESTAMP`]
+}
+
+Table file_attachments {
+  id int [pk, increment]
+  entity_type varchar(50) [not null]
+  entity_id int [not null]
+  file_name varchar(255) [not null]
+  file_path varchar(500) [not null]
+  file_size int
+  mime_type varchar(100)
+  uploaded_by int [not null]
+  created_at datetime [not null, default: `CURRENT_TIMESTAMP`]
+}
+
+
+Table audit_logs {
+  id int [pk, increment]
+  user_id int
+  action varchar(100) [not null]
+  entity_type varchar(50) [not null]
+  entity_id int [not null]
+  old_values json
+  new_values json
+  ip_address varchar(45)
+  user_agent text
+  created_at datetime [not null, default: `CURRENT_TIMESTAMP`]
+}
+
+Ref: doctors.user_id > users.id
+Ref: doctors.specialization_id > specializations.id
+Ref: users.hospital_id > hospitals.id
+Ref: doctor_availability.doctor_id > doctors.id
+Ref: medical_profiles.user_id > users.id
+Ref: medical_records.appointment_id > appointments.id
+Ref: appointments.patient_id > users.id
+Ref: appointments.doctor_id > doctors.id
+Ref: appointment_payments.appointment_id > appointments.id
+Ref: notifications.user_id > users.id
+Ref: appointment_status_history.appointment_id > appointments.id
+Ref: waitlist.patient_id > users.id
+Ref: waitlist.doctor_id > doctors.id
+Ref: file_attachments.uploaded_by > users.id
+Ref: audit_logs.user_id > users.id
