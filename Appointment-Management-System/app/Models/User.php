@@ -29,6 +29,7 @@ class User extends Authenticatable
         'hospital_id',
         'role',
         'status',
+        'email_verified_at',
     ];
 
     /**
@@ -38,6 +39,7 @@ class User extends Authenticatable
      */
     protected $hidden = [
         'password',
+        'remember_token',
     ];
 
     /**
@@ -49,6 +51,7 @@ class User extends Authenticatable
         'password' => 'hashed',
         'role' => RoleType::class,
         'status' => AccountStatus::class,
+        'email_verified_at' => 'datetime',
     ];
 
     public function hospital(): BelongsTo
