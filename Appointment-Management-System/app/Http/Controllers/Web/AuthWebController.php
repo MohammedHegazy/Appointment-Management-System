@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers\Web;
 
 use App\Enums\AccountStatus;
 use App\Enums\RoleType;
@@ -10,23 +10,33 @@ use App\Models\Doctor;
 use App\Models\EmailOtp;
 use App\Models\Hospital;
 use App\Models\MedicalProfile;
+use App\Models\Specialization;
 use App\Models\User;
 use App\Services\AuditLogService;
-use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rule;
+use Illuminate\View\View;
 
-class AuthController extends Controller
+class AuthWebController extends Controller
 {
     public function __construct(private readonly AuditLogService $auditLogService)
     {
     }
 
-    public function register(Request $request): JsonResponse
+    public function showRegister(): View
+    {
+        return view('auth.register', [
+            'specializations' => Specialization::query()->orderBy('name')->get(),
+        ]);
+    }
+
+    public function register(Request $request): RedirectResponse
     {
         $validated = $request->validate([
             'register_as' => ['required', Rule::in(['hospital_admin', 'doctor', 'patient'])],
@@ -47,7 +57,7 @@ class AuthController extends Controller
             $validated['certificate_file'] = $request->file('certificate_file')->store('doctor-certificates', 'public');
         }
 
-        $user = DB::transaction(function () use ($validated) {
+        $user = DB::transaction(function () use ($validated): User {
             $role = RoleType::from($validated['register_as']);
             $status = $role === RoleType::Patient ? AccountStatus::Active : AccountStatus::Pending;
 
@@ -58,7 +68,6 @@ class AuthController extends Controller
                     'address' => $validated['hospital_address'] ?? null,
                     'phone' => $validated['hospital_phone'] ?? null,
                 ]);
-
                 $hospitalId = $hospital->id;
             }
 
@@ -83,9 +92,7 @@ class AuthController extends Controller
             }
 
             if ($role === RoleType::Patient) {
-                MedicalProfile::create([
-                    'user_id' => $user->id,
-                ]);
+                MedicalProfile::create(['user_id' => $user->id]);
             }
 
             return $user;
@@ -93,7 +100,7 @@ class AuthController extends Controller
 
         $this->generateAndSendOtp($user, $request);
         $this->auditLogService->log(
-            action: 'user.registered.api',
+            action: 'user.registered.web',
             entity: $user,
             newValues: [
                 'role' => $user->role->value,
@@ -105,18 +112,19 @@ class AuthController extends Controller
             userId: $user->id
         );
 
-        return response()->json([
-            'message' => 'Registration completed. Please verify your email with OTP.',
-            'data' => [
-                'user_id' => $user->id,
-                'email' => $user->email,
-                'status' => $user->status->value,
-                'role' => $user->role->value,
-            ],
-        ], 201);
+        return redirect()
+            ->route('verify.form', ['email' => $user->email])
+            ->with('success', 'Registration completed. We sent an OTP to your email.');
     }
 
-    public function verifyOtp(Request $request): JsonResponse
+    public function showVerifyOtp(Request $request): View
+    {
+        return view('auth.verify-otp', [
+            'email' => (string) $request->query('email', old('email', '')),
+        ]);
+    }
+
+    public function verifyOtp(Request $request): RedirectResponse
     {
         $validated = $request->validate([
             'email' => ['required', 'email', 'exists:users,email'],
@@ -127,128 +135,126 @@ class AuthController extends Controller
         $otp = EmailOtp::where('user_id', $user->id)->latest('id')->first();
 
         if (! $otp) {
-            return response()->json(['message' => 'OTP not found. Please request a new one.'], 404);
+            return back()->withInput()->withErrors(['otp' => 'OTP not found. Please request a new one.']);
         }
 
         if ($otp->verified_at) {
-            return response()->json(['message' => 'OTP already verified.'], 422);
+            return back()->withInput()->withErrors(['otp' => 'OTP already verified.']);
         }
 
         if ($otp->expires_at->isPast()) {
-            return response()->json(['message' => 'OTP expired. Please request a new one.'], 422);
+            return back()->withInput()->withErrors(['otp' => 'OTP expired. Please request a new one.']);
         }
 
         if (! Hash::check($validated['otp'], $otp->otp_hash)) {
-            return response()->json(['message' => 'Invalid OTP code.'], 422);
+            return back()->withInput()->withErrors(['otp' => 'Invalid OTP code.']);
         }
 
         $otp->update(['verified_at' => now()]);
         $user->update(['email_verified_at' => now()]);
         $this->auditLogService->log(
-            action: 'user.otp_verified.api',
+            action: 'user.otp_verified.web',
             entity: $user,
             newValues: ['email_verified_at' => $user->fresh()->email_verified_at?->toDateTimeString()],
             request: $request,
             userId: $user->id
         );
 
-        return response()->json([
-            'message' => 'Email verified successfully.',
-            'data' => [
-                'email_verified_at' => $user->fresh()->email_verified_at,
-            ],
-        ]);
+        return redirect()
+            ->route('login')
+            ->with('success', 'Email verified successfully. You can now login.');
     }
 
-    public function resendOtp(Request $request): JsonResponse
+    public function resendOtp(Request $request): RedirectResponse
     {
         $validated = $request->validate([
             'email' => ['required', 'email', 'exists:users,email'],
         ]);
 
         $user = User::where('email', $validated['email'])->firstOrFail();
-
         if ($user->email_verified_at) {
-            return response()->json(['message' => 'Email is already verified.'], 422);
+            return back()->withInput()->withErrors(['email' => 'Email is already verified.']);
         }
 
         $this->generateAndSendOtp($user, $request);
         $this->auditLogService->log(
-            action: 'user.otp_resent.api',
+            action: 'user.otp_resent.web',
             entity: $user,
             request: $request,
             userId: $user->id
         );
 
-        return response()->json([
-            'message' => 'A new OTP has been sent to your email.',
-        ]);
+        return back()->withInput()->with('success', 'A new OTP has been sent to your email.');
     }
 
-    public function login(Request $request): JsonResponse
+    public function showLogin(): View
+    {
+        return view('auth.login');
+    }
+
+    public function login(Request $request): RedirectResponse
     {
         $validated = $request->validate([
             'email' => ['required', 'email'],
             'password' => ['required', 'string'],
-            'device_name' => ['nullable', 'string', 'max:100'],
         ]);
 
         $user = User::where('email', $validated['email'])->first();
-
         if (! $user || ! Hash::check($validated['password'], $user->password)) {
             $this->auditLogService->log(
-                action: 'auth.login_failed.api',
+                action: 'auth.login_failed.web',
                 entity: 'User',
                 entityId: $user?->id ?? 0,
                 newValues: ['email' => $validated['email']],
                 request: $request
             );
-            return response()->json(['message' => 'Invalid email or password.'], 401);
+            return back()->withInput()->withErrors(['email' => 'Invalid email or password.']);
         }
 
         if (! $user->email_verified_at) {
-            return response()->json(['message' => 'Please verify your email first.'], 403);
+            return redirect()
+                ->route('verify.form', ['email' => $user->email])
+                ->withErrors(['email' => 'Please verify your email first.']);
         }
 
         if ($user->status !== AccountStatus::Active) {
-            return response()->json([
-                'message' => 'Your account is pending admin approval.',
-            ], 403);
+            return back()->withInput()->withErrors(['email' => 'Your account is pending admin approval.']);
         }
 
-        $token = $user->createToken($validated['device_name'] ?? 'api')->plainTextToken;
+        Auth::login($user);
+        $request->session()->regenerate();
         $this->auditLogService->log(
-            action: 'auth.login_success.api',
+            action: 'auth.login_success.web',
             entity: $user,
             request: $request,
             userId: $user->id
         );
 
-        return response()->json([
-            'message' => 'Login successful.',
-            'data' => [
-                'token' => $token,
-                'token_type' => 'Bearer',
-                'user' => $user->only(['id', 'first_name', 'last_name', 'email', 'role', 'status']),
-            ],
-        ]);
+        $redirectRoute = $user->role === RoleType::Admin ? 'admin.index' : 'home';
+
+        return redirect()->route($redirectRoute)->with('success', 'Welcome back!');
     }
 
-    public function logout(Request $request): JsonResponse
+    public function home(): View
     {
-        $userId = $request->user()?->id;
-        $request->user()->currentAccessToken()?->delete();
+        return view('auth.home');
+    }
+
+    public function logout(Request $request): RedirectResponse
+    {
+        $userId = Auth::id();
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
         $this->auditLogService->log(
-            action: 'auth.logout.api',
+            action: 'auth.logout.web',
             entity: 'User',
             entityId: $userId ?? 0,
             request: $request,
             userId: $userId
         );
 
-        return response()->json([
-            'message' => 'Logged out successfully.',
-        ]);
+        return redirect()->route('login')->with('success', 'Logged out successfully.');
     }
 
     private function generateAndSendOtp(User $user, ?Request $request = null): void
@@ -267,7 +273,7 @@ class AuthController extends Controller
         ));
 
         $this->auditLogService->log(
-            action: 'user.otp_sent.api',
+            action: 'user.otp_sent.web',
             entity: $user,
             request: $request,
             userId: $user->id

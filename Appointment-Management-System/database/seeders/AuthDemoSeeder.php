@@ -24,11 +24,11 @@ class AuthDemoSeeder extends Seeder
         );
 
         User::updateOrCreate(
-            ['email' => 'system.admin@medmeets.test'],
+            ['email' => 'admin@app.test'],
             [
                 'first_name' => 'System',
                 'last_name' => 'Admin',
-                'password' => 'password123',
+                'password' => 'password',
                 'role' => RoleType::Admin,
                 'status' => AccountStatus::Active,
                 'email_verified_at' => now(),
@@ -36,11 +36,11 @@ class AuthDemoSeeder extends Seeder
         );
 
         User::updateOrCreate(
-            ['email' => 'hospital.pending@medmeets.test'],
+            ['email' => 'hospital@app.test'],
             [
                 'first_name' => 'Pending',
                 'last_name' => 'HospitalAdmin',
-                'password' => 'password123',
+                'password' => 'password',
                 'hospital_id' => $defaultHospital->id,
                 'role' => RoleType::HospitalAdmin,
                 'status' => AccountStatus::Pending,
@@ -49,11 +49,11 @@ class AuthDemoSeeder extends Seeder
         );
 
         $doctorUser = User::updateOrCreate(
-            ['email' => 'doctor.pending@medmeets.test'],
+            ['email' => 'doctor@app.test'],
             [
                 'first_name' => 'Pending',
                 'last_name' => 'Doctor',
-                'password' => 'password123',
+                'password' => 'password',
                 'role' => RoleType::Doctor,
                 'status' => AccountStatus::Pending,
                 'email_verified_at' => now(),
@@ -70,11 +70,11 @@ class AuthDemoSeeder extends Seeder
         );
 
         $patientUser = User::updateOrCreate(
-            ['email' => 'patient.active@medmeets.test'],
+            ['email' => 'patient@app.test'],
             [
                 'first_name' => 'Active',
                 'last_name' => 'Patient',
-                'password' => 'password123',
+                'password' => 'password',
                 'role' => RoleType::Patient,
                 'status' => AccountStatus::Active,
                 'email_verified_at' => now(),
