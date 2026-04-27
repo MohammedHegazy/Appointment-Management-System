@@ -1,0 +1,16 @@
+:root {
+    --color-white: #ffffff;
+    --color-accent: #405c80;
+    --color-accent-deep: #2a3f5c;
+    --color-secondary: #0072ff;
+    --color-secondary-strong: #005ccc;
+    --color-secondary-soft: #eaf3ff;
+    --color-border-input: #d1d5db;
+    --color-text-strong: #111827;
+    --color-text-soft: #6b7280;
+    --color-dashboard-bg: #f4f7fb;
+    --color-danger: #b71c1c;
+    --color-danger-bg: #ffebee;
+    --color-success-text: #1b5e20;
+    --color-success-bg: #e8f5e9;
+}

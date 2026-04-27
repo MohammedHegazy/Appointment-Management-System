@@ -39,11 +39,20 @@ return [
             'url' => env('MAIL_URL'),
             'host' => env('MAIL_HOST', 'smtp.mailgun.org'),
             'port' => env('MAIL_PORT', 587),
+            'scheme' => env('MAIL_SCHEME'),
             'encryption' => env('MAIL_ENCRYPTION', 'tls'),
             'username' => env('MAIL_USERNAME'),
             'password' => env('MAIL_PASSWORD'),
             'timeout' => null,
             'local_domain' => env('MAIL_EHLO_DOMAIN'),
+            'verify_peer' => filter_var(env('MAIL_VERIFY_PEER', true), FILTER_VALIDATE_BOOLEAN),
+            'stream' => [
+                'ssl' => [
+                    'verify_peer' => filter_var(env('MAIL_VERIFY_PEER', true), FILTER_VALIDATE_BOOLEAN),
+                    'verify_peer_name' => filter_var(env('MAIL_VERIFY_PEER_NAME', true), FILTER_VALIDATE_BOOLEAN),
+                    'allow_self_signed' => filter_var(env('MAIL_ALLOW_SELF_SIGNED', false), FILTER_VALIDATE_BOOLEAN),
+                ],
+            ],
         ],
 
         'ses' => [
