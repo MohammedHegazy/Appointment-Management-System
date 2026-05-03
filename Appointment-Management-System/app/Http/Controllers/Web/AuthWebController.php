@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -230,7 +231,10 @@ class AuthWebController extends Controller
             userId: $user->id
         );
 
-        $redirectRoute = $user->role === RoleType::Admin ? 'admin.index' : 'home';
+        $redirectRoute = (string) config('dashboard.role_home_routes.' . $user->role->value, 'home');
+        if (! Route::has($redirectRoute)) {
+            $redirectRoute = 'home';
+        }
 
         return redirect()->route($redirectRoute)->with('success', 'Welcome back!');
     }
@@ -280,3 +284,4 @@ class AuthWebController extends Controller
         );
     }
 }
+

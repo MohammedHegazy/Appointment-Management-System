@@ -2,7 +2,14 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Web\AuthWebController;
-use App\Http\Controllers\Web\AdminDashboardController;
+use App\Http\Controllers\Web\Admin\AuditLogController;
+use App\Http\Controllers\Web\Admin\DashboardController;
+use App\Http\Controllers\Web\Admin\DoctorController;
+use App\Http\Controllers\Web\Admin\HospitalController;
+use App\Http\Controllers\Web\Admin\HospitalDoctorController;
+use App\Http\Controllers\Web\Admin\HospitalUserController;
+use App\Http\Controllers\Web\Admin\PatientController;
+use App\Http\Controllers\Web\Admin\SettingsController;
 
 /*
 |--------------------------------------------------------------------------
@@ -34,34 +41,40 @@ Route::middleware('auth')->group(function (): void {
     Route::post('/logout', [AuthWebController::class, 'logout'])->name('logout');
 
     Route::prefix('admin')->name('admin.')->group(function (): void {
-        Route::get('/', [AdminDashboardController::class, 'index'])->name('index');
-        Route::get('/audit-logs', [AdminDashboardController::class, 'auditLogs'])->name('audit-logs.index');
-        Route::get('/hospitals', [AdminDashboardController::class, 'hospitalsIndex'])->name('hospitals.index');
-        Route::get('/hospitals/create', [AdminDashboardController::class, 'createHospital'])->name('hospitals.create');
-        Route::post('/hospitals/create', [AdminDashboardController::class, 'createHospitalSubmit'])->name('hospitals.create.submit');
-        Route::get('/hospitals/{hospital}', [AdminDashboardController::class, 'hospitalInfo'])->name('hospitals.info');
-        Route::get('/hospitals/{hospital}/update', [AdminDashboardController::class, 'updateHospital'])->name('hospitals.update');
-        Route::post('/hospitals/{hospital}/update', [AdminDashboardController::class, 'updateHospitalSubmit'])->name('hospitals.update.submit');
-        Route::get('/hospitals/{hospital}/users', [AdminDashboardController::class, 'hospitalUsersIndex'])->name('hospitals.users.index');
-        Route::get('/hospitals/{hospital}/users/{user}', [AdminDashboardController::class, 'hospitalUserInfo'])->name('hospitals.users.info');
-        Route::get('/hospitals/{hospital}/users/{user}/update', [AdminDashboardController::class, 'hospitalUserUpdate'])->name('hospitals.users.update');
-        Route::post('/hospitals/{hospital}/users/{user}/update', [AdminDashboardController::class, 'hospitalUserUpdateSubmit'])->name('hospitals.users.update.submit');
-        Route::get('/hospitals/{hospital}/doctors', [AdminDashboardController::class, 'hospitalDoctorsIndex'])->name('hospitals.doctors.index');
-        Route::get('/hospitals/{hospital}/doctors/{doctor}', [AdminDashboardController::class, 'hospitalDoctorInfo'])->name('hospitals.doctors.info');
-        Route::get('/hospitals/{hospital}/doctors/{doctor}/update', [AdminDashboardController::class, 'hospitalDoctorUpdate'])->name('hospitals.doctors.update');
-        Route::post('/hospitals/{hospital}/doctors/{doctor}/update', [AdminDashboardController::class, 'hospitalDoctorUpdateSubmit'])->name('hospitals.doctors.update.submit');
-        Route::get('/doctors', [AdminDashboardController::class, 'doctorsIndex'])->name('doctors.index');
-        Route::get('/doctors/create', [AdminDashboardController::class, 'createDoctor'])->name('doctors.create');
-        Route::post('/doctors/create', [AdminDashboardController::class, 'createDoctorSubmit'])->name('doctors.create.submit');
-        Route::get('/doctors/{doctor}', [AdminDashboardController::class, 'doctorInfo'])->name('doctors.info');
-        Route::get('/doctors/{doctor}/update', [AdminDashboardController::class, 'updateDoctor'])->name('doctors.update');
-        Route::post('/doctors/{doctor}/update', [AdminDashboardController::class, 'updateDoctorSubmit'])->name('doctors.update.submit');
-        Route::get('/patients', [AdminDashboardController::class, 'patientsIndex'])->name('patients.index');
-        Route::get('/patients/{patient}', [AdminDashboardController::class, 'patientInfo'])->name('patients.info');
-        Route::get('/patients/{patient}/update', [AdminDashboardController::class, 'updatePatient'])->name('patients.update');
-        Route::post('/patients/{patient}/update', [AdminDashboardController::class, 'updatePatientSubmit'])->name('patients.update.submit');
-        Route::get('/settings/profile', [AdminDashboardController::class, 'settingsProfile'])->name('settings.profile');
-        Route::post('/settings/profile', [AdminDashboardController::class, 'settingsProfileUpdate'])->name('settings.profile.update');
-        Route::post('/settings/profile/password', [AdminDashboardController::class, 'settingsPasswordUpdate'])->name('settings.profile.password.update');
+        Route::get('/', [DashboardController::class, 'index'])->name('index');
+        Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
+
+        Route::get('/hospitals', [HospitalController::class, 'index'])->name('hospitals.index');
+        Route::get('/hospitals/create', [HospitalController::class, 'create'])->name('hospitals.create');
+        Route::post('/hospitals/create', [HospitalController::class, 'store'])->name('hospitals.create.submit');
+        Route::get('/hospitals/{hospital}', [HospitalController::class, 'show'])->name('hospitals.info');
+        Route::get('/hospitals/{hospital}/update', [HospitalController::class, 'edit'])->name('hospitals.update');
+        Route::post('/hospitals/{hospital}/update', [HospitalController::class, 'update'])->name('hospitals.update.submit');
+
+        Route::get('/hospitals/{hospital}/users', [HospitalUserController::class, 'index'])->name('hospitals.users.index');
+        Route::get('/hospitals/{hospital}/users/{user}', [HospitalUserController::class, 'show'])->name('hospitals.users.info');
+        Route::get('/hospitals/{hospital}/users/{user}/update', [HospitalUserController::class, 'edit'])->name('hospitals.users.update');
+        Route::post('/hospitals/{hospital}/users/{user}/update', [HospitalUserController::class, 'update'])->name('hospitals.users.update.submit');
+
+        Route::get('/hospitals/{hospital}/doctors', [HospitalDoctorController::class, 'index'])->name('hospitals.doctors.index');
+        Route::get('/hospitals/{hospital}/doctors/{doctor}', [HospitalDoctorController::class, 'show'])->name('hospitals.doctors.info');
+        Route::get('/hospitals/{hospital}/doctors/{doctor}/update', [HospitalDoctorController::class, 'edit'])->name('hospitals.doctors.update');
+        Route::post('/hospitals/{hospital}/doctors/{doctor}/update', [HospitalDoctorController::class, 'update'])->name('hospitals.doctors.update.submit');
+
+        Route::get('/doctors', [DoctorController::class, 'index'])->name('doctors.index');
+        Route::get('/doctors/create', [DoctorController::class, 'create'])->name('doctors.create');
+        Route::post('/doctors/create', [DoctorController::class, 'store'])->name('doctors.create.submit');
+        Route::get('/doctors/{doctor}', [DoctorController::class, 'show'])->name('doctors.info');
+        Route::get('/doctors/{doctor}/update', [DoctorController::class, 'edit'])->name('doctors.update');
+        Route::post('/doctors/{doctor}/update', [DoctorController::class, 'update'])->name('doctors.update.submit');
+
+        Route::get('/patients', [PatientController::class, 'index'])->name('patients.index');
+        Route::get('/patients/{patient}', [PatientController::class, 'show'])->name('patients.info');
+        Route::get('/patients/{patient}/update', [PatientController::class, 'edit'])->name('patients.update');
+        Route::post('/patients/{patient}/update', [PatientController::class, 'update'])->name('patients.update.submit');
+
+        Route::get('/settings/profile', [SettingsController::class, 'profile'])->name('settings.profile');
+        Route::post('/settings/profile', [SettingsController::class, 'updateProfile'])->name('settings.profile.update');
+        Route::post('/settings/profile/password', [SettingsController::class, 'updatePassword'])->name('settings.profile.password.update');
     });
 });
