@@ -10,7 +10,7 @@ return [
 
     'role_home_routes' => [
         'admin' => 'admin.index',
-        'hospital_admin' => 'home',
+        'hospital_admin' => 'hospital-admin.index',
         'doctor' => 'home',
         'patient' => 'home',
     ],
@@ -25,7 +25,11 @@ return [
             ['label' => 'My Profile', 'route' => 'admin.settings.profile', 'active' => ['admin.settings.*'], 'icon' => 'settings'],
         ],
         'hospital_admin' => [
-            ['label' => 'Home', 'route' => 'home', 'active' => ['home'], 'icon' => 'grid'],
+            ['label' => 'Overview', 'route' => 'hospital-admin.index', 'active' => ['hospital-admin.index'], 'icon' => 'grid'],
+            ['label' => 'Doctors', 'route' => 'hospital-admin.doctors.index', 'active' => ['hospital-admin.doctors.*'], 'icon' => 'doctor'],
+            ['label' => 'Appointments', 'route' => 'hospital-admin.appointments.index', 'active' => ['hospital-admin.appointments.*'], 'icon' => 'list'],
+            ['label' => 'My Profile', 'route' => 'hospital-admin.settings.profile', 'active' => ['hospital-admin.settings.profile', 'hospital-admin.settings.profile.*'], 'icon' => 'settings'],
+            ['label' => 'Hospital Settings', 'route' => 'hospital-admin.settings.hospital', 'active' => ['hospital-admin.settings.hospital', 'hospital-admin.settings.hospital.*'], 'icon' => 'bars'],
         ],
         'doctor' => [
             ['label' => 'Home', 'route' => 'home', 'active' => ['home'], 'icon' => 'grid'],
