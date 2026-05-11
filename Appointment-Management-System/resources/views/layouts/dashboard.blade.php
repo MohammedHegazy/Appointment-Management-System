@@ -29,8 +29,10 @@
             ->values();
     @endphp
 
-    <div class="dash-shell">
-        <aside class="dash-sidebar">
+    <div class="dash-shell-wrap">
+        <x-ui.animated-auth-background class="auth-bg--dashboard" />
+        <div class="dash-shell">
+            <aside class="dash-sidebar">
             <div class="dash-sidebar__brand">
                 <div class="dash-logo">
                     @if (!empty($sidebarUser?->avatar))
@@ -94,8 +96,9 @@
             </form>
         </aside>
 
-        <div class="dash-main">
-            <header class="dash-topbar">
+            <div class="dash-main">
+                <x-ui.animated-auth-background class="auth-bg--dashboard auth-bg--dashboard-main" />
+                <header class="dash-topbar">
                 <h2 class="dash-brand">@yield('title', 'Dashboard')</h2>
                 <div class="dash-user-chip">
                     <div class="dash-user-chip__avatar">
@@ -109,9 +112,10 @@
                 </div>
             </header>
 
-            <main class="dash-container">
-                @yield('content')
-            </main>
+                <main class="dash-container">
+                    @yield('content')
+                </main>
+            </div>
         </div>
     </div>
 
