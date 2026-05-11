@@ -2,6 +2,16 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Web\AuthWebController;
+use App\Http\Controllers\Web\Doctor\AvailabilityController as DoctorAvailabilityController;
+use App\Http\Controllers\Web\Doctor\AppointmentController as DoctorAppointmentController;
+use App\Http\Controllers\Web\Doctor\DashboardController as DoctorDashboardController;
+use App\Http\Controllers\Web\Doctor\SettingsController as DoctorSettingsController;
+use App\Http\Controllers\Web\HospitalDoctor\AppointmentController as HospitalDoctorAppointmentController;
+use App\Http\Controllers\Web\HospitalDoctor\DashboardController as HospitalDoctorDashboardController;
+use App\Http\Controllers\Web\HospitalDoctor\SettingsController as HospitalDoctorSettingsController;
+use App\Http\Controllers\Web\Patient\AppointmentController as PatientAppointmentController;
+use App\Http\Controllers\Web\Patient\DashboardController as PatientDashboardController;
+use App\Http\Controllers\Web\Patient\SettingsController as PatientSettingsController;
 use App\Http\Controllers\Web\HospitalAdmin\AppointmentController as HospitalAdminAppointmentController;
 use App\Http\Controllers\Web\HospitalAdmin\DashboardController as HospitalAdminDashboardController;
 use App\Http\Controllers\Web\HospitalAdmin\DoctorAvailabilityController as HospitalAdminDoctorAvailabilityController;
@@ -73,6 +83,51 @@ Route::middleware('auth')->group(function (): void {
         Route::post('/settings/profile/password', [HospitalAdminSettingsController::class, 'updatePassword'])->name('settings.profile.password.update');
         Route::get('/settings/hospital', [HospitalAdminSettingsController::class, 'hospitalProfile'])->name('settings.hospital');
         Route::post('/settings/hospital', [HospitalAdminSettingsController::class, 'updateHospitalProfile'])->name('settings.hospital.update');
+    });
+
+    Route::prefix('doctor')->name('doctor.')->group(function (): void {
+        Route::get('/', [DoctorDashboardController::class, 'index'])->name('index');
+
+        Route::get('/appointments', [DoctorAppointmentController::class, 'index'])->name('appointments.index');
+        Route::get('/appointments/{appointment}', [DoctorAppointmentController::class, 'show'])->name('appointments.info');
+        Route::post('/appointments/{appointment}', [DoctorAppointmentController::class, 'update'])->name('appointments.update');
+
+        Route::get('/availability', [DoctorAvailabilityController::class, 'index'])->name('availability.index');
+        Route::get('/availability/create', [DoctorAvailabilityController::class, 'create'])->name('availability.create');
+        Route::post('/availability/create', [DoctorAvailabilityController::class, 'store'])->name('availability.create.submit');
+        Route::get('/availability/{availability}/update', [DoctorAvailabilityController::class, 'edit'])->name('availability.update');
+        Route::post('/availability/{availability}/update', [DoctorAvailabilityController::class, 'update'])->name('availability.update.submit');
+        Route::post('/availability/{availability}/delete', [DoctorAvailabilityController::class, 'destroy'])->name('availability.delete');
+
+        Route::get('/settings/profile', [DoctorSettingsController::class, 'profile'])->name('settings.profile');
+        Route::post('/settings/profile', [DoctorSettingsController::class, 'updateProfile'])->name('settings.profile.update');
+        Route::post('/settings/profile/professional', [DoctorSettingsController::class, 'updateProfessional'])->name('settings.profile.professional.update');
+        Route::post('/settings/profile/password', [DoctorSettingsController::class, 'updatePassword'])->name('settings.profile.password.update');
+    });
+
+    Route::prefix('hospital-doctor')->name('hospital-doctor.')->group(function (): void {
+        Route::get('/', [HospitalDoctorDashboardController::class, 'index'])->name('index');
+
+        Route::get('/appointments', [HospitalDoctorAppointmentController::class, 'index'])->name('appointments.index');
+        Route::get('/appointments/{appointment}', [HospitalDoctorAppointmentController::class, 'show'])->name('appointments.info');
+        Route::post('/appointments/{appointment}', [HospitalDoctorAppointmentController::class, 'update'])->name('appointments.update');
+
+        Route::get('/settings/profile', [HospitalDoctorSettingsController::class, 'profile'])->name('settings.profile');
+        Route::post('/settings/profile', [HospitalDoctorSettingsController::class, 'updateProfile'])->name('settings.profile.update');
+        Route::post('/settings/profile/password', [HospitalDoctorSettingsController::class, 'updatePassword'])->name('settings.profile.password.update');
+    });
+
+    Route::prefix('patient')->name('patient.')->group(function (): void {
+        Route::get('/', [PatientDashboardController::class, 'index'])->name('index');
+
+        Route::get('/appointments', [PatientAppointmentController::class, 'index'])->name('appointments.index');
+        Route::get('/appointments/{appointment}', [PatientAppointmentController::class, 'show'])->name('appointments.info');
+        Route::post('/appointments/{appointment}/cancel', [PatientAppointmentController::class, 'cancel'])->name('appointments.cancel');
+
+        Route::get('/settings/profile', [PatientSettingsController::class, 'profile'])->name('settings.profile');
+        Route::post('/settings/profile', [PatientSettingsController::class, 'updateProfile'])->name('settings.profile.update');
+        Route::post('/settings/profile/medical', [PatientSettingsController::class, 'updateMedicalProfile'])->name('settings.profile.medical.update');
+        Route::post('/settings/profile/password', [PatientSettingsController::class, 'updatePassword'])->name('settings.profile.password.update');
     });
 
     Route::prefix('admin')->name('admin.')->group(function (): void {

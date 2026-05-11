@@ -231,7 +231,12 @@ class AuthWebController extends Controller
             userId: $user->id
         );
 
-        $redirectRoute = (string) config('dashboard.role_home_routes.' . $user->role->value, 'home');
+        $redirectRoleKey = $user->role->value;
+        if ($redirectRoleKey === 'doctor' && $user->hospital_id !== null) {
+            $redirectRoleKey = 'hospital_doctor';
+        }
+
+        $redirectRoute = (string) config('dashboard.role_home_routes.' . $redirectRoleKey, 'home');
         if (! Route::has($redirectRoute)) {
             $redirectRoute = 'home';
         }
@@ -284,4 +289,3 @@ class AuthWebController extends Controller
         );
     }
 }
-

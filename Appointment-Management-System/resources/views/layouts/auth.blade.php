@@ -13,6 +13,7 @@
 <x-ui.toast-stack />
 
 <main class="auth-shell">
+    <x-ui.animated-auth-background />
     <section class="auth-card">
         @yield('content')
     </section>
