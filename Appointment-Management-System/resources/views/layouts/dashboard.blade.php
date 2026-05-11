@@ -18,6 +18,9 @@
         $sidebarUser = auth()->user();
         $sidebarInitials = strtoupper(substr((string) ($sidebarUser->first_name ?? 'A'), 0, 1) . substr((string) ($sidebarUser->last_name ?? 'D'), 0, 1));
         $roleKey = $sidebarUser?->role?->value ?? 'patient';
+        if ($roleKey === 'doctor' && !empty($sidebarUser?->hospital_id)) {
+            $roleKey = 'hospital_doctor';
+        }
 
         $roleLabels = config('dashboard.role_labels.' . $roleKey, [
             'welcome' => 'Welcome User',
