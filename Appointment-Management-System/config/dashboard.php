@@ -14,7 +14,7 @@ return [
         'hospital_admin' => 'hospital-admin.index',
         'doctor' => 'doctor.index',
         'hospital_doctor' => 'hospital-doctor.index',
-        'patient' => 'home',
+        'patient' => 'patient.index',
     ],
 
     'navigation' => [
@@ -45,7 +45,9 @@ return [
             ['label' => 'My Profile', 'route' => 'hospital-doctor.settings.profile', 'active' => ['hospital-doctor.settings.*'], 'icon' => 'settings'],
         ],
         'patient' => [
-            ['label' => 'Home', 'route' => 'home', 'active' => ['home'], 'icon' => 'grid'],
+            ['label' => 'Overview', 'route' => 'patient.index', 'active' => ['patient.index'], 'icon' => 'grid'],
+            ['label' => 'Appointments', 'route' => 'patient.appointments.index', 'active' => ['patient.appointments.*'], 'icon' => 'list'],
+            ['label' => 'My Profile', 'route' => 'patient.settings.profile', 'active' => ['patient.settings.*'], 'icon' => 'settings'],
         ],
     ],
 ];

@@ -9,6 +9,9 @@ use App\Http\Controllers\Web\Doctor\SettingsController as DoctorSettingsControll
 use App\Http\Controllers\Web\HospitalDoctor\AppointmentController as HospitalDoctorAppointmentController;
 use App\Http\Controllers\Web\HospitalDoctor\DashboardController as HospitalDoctorDashboardController;
 use App\Http\Controllers\Web\HospitalDoctor\SettingsController as HospitalDoctorSettingsController;
+use App\Http\Controllers\Web\Patient\AppointmentController as PatientAppointmentController;
+use App\Http\Controllers\Web\Patient\DashboardController as PatientDashboardController;
+use App\Http\Controllers\Web\Patient\SettingsController as PatientSettingsController;
 use App\Http\Controllers\Web\HospitalAdmin\AppointmentController as HospitalAdminAppointmentController;
 use App\Http\Controllers\Web\HospitalAdmin\DashboardController as HospitalAdminDashboardController;
 use App\Http\Controllers\Web\HospitalAdmin\DoctorAvailabilityController as HospitalAdminDoctorAvailabilityController;
@@ -112,6 +115,19 @@ Route::middleware('auth')->group(function (): void {
         Route::get('/settings/profile', [HospitalDoctorSettingsController::class, 'profile'])->name('settings.profile');
         Route::post('/settings/profile', [HospitalDoctorSettingsController::class, 'updateProfile'])->name('settings.profile.update');
         Route::post('/settings/profile/password', [HospitalDoctorSettingsController::class, 'updatePassword'])->name('settings.profile.password.update');
+    });
+
+    Route::prefix('patient')->name('patient.')->group(function (): void {
+        Route::get('/', [PatientDashboardController::class, 'index'])->name('index');
+
+        Route::get('/appointments', [PatientAppointmentController::class, 'index'])->name('appointments.index');
+        Route::get('/appointments/{appointment}', [PatientAppointmentController::class, 'show'])->name('appointments.info');
+        Route::post('/appointments/{appointment}/cancel', [PatientAppointmentController::class, 'cancel'])->name('appointments.cancel');
+
+        Route::get('/settings/profile', [PatientSettingsController::class, 'profile'])->name('settings.profile');
+        Route::post('/settings/profile', [PatientSettingsController::class, 'updateProfile'])->name('settings.profile.update');
+        Route::post('/settings/profile/medical', [PatientSettingsController::class, 'updateMedicalProfile'])->name('settings.profile.medical.update');
+        Route::post('/settings/profile/password', [PatientSettingsController::class, 'updatePassword'])->name('settings.profile.password.update');
     });
 
     Route::prefix('admin')->name('admin.')->group(function (): void {
